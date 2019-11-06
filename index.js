@@ -57,7 +57,12 @@ app.post("/register-user", async (req, res) => {
 app.post("/open-account", async (req, res) => {
   try {
     console.log("/open-account");
-    contentCheck(req.body, ["user_id", "balance"]);
+    contentCheck(req.body, [
+      "user_id",
+      "balance",
+      "expiry_date",
+      "card_number"
+    ]);
     let accountID = await manager.openAccount(req.body);
     res.status(201).json({ account_id: accountID });
     console.log("success\n");
@@ -71,8 +76,8 @@ app.post("/process-transaction", async (req, res) => {
   try {
     console.log("/process-transaction");
     contentCheck(req.body, ["sender", "receiver", "ammount"]);
-    let transactionID = await manager.processTransaction(req.body);
-    res.status(201).json({ transaction_id: transactionID });
+    await manager.processTransaction(req.body);
+    res.status(201).json({ status: "ok" });
     console.log("success\n");
   } catch (err) {
     console.log(err);
@@ -86,6 +91,18 @@ app.post("/increase-balance", async (req, res) => {
     contentCheck(req.body, ["add_ammount", "account_id"]);
     await manager.increaseBalance(req.body);
     res.status(200).json({ status: "success" });
+    console.log("success\n");
+  } catch (err) {
+    console.log(err);
+    res.sendStatus(500);
+  }
+});
+
+app.get("/flush-redis", async (req, res) => {
+  try {
+    console.log("/flush-redis");
+    await manager.flushAll();
+    res.sendStatus(200);
     console.log("success\n");
   } catch (err) {
     console.log(err);
